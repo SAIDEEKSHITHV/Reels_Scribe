@@ -17,6 +17,51 @@ app.use(express.json());
 // Serve static files from the 'dist' directory (Vite build)
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// Helper function for extraction (User provided logic)
+async function extractCaption(reelUrl) {
+    const browser = await chromium.launch({
+        headless: true
+    });
+
+    const context = await browser.newContext({
+        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    });
+
+    const page = await context.newPage();
+
+    try {
+        await page.goto(reelUrl, {
+            waitUntil: "networkidle",
+            timeout: 60000
+        });
+
+        // wait for Instagram to fully load caption
+        await page.waitForTimeout(3000);
+
+        const caption = await page.evaluate(() => {
+            const scripts = document.querySelectorAll("script[type='application/ld+json']");
+
+            for (const script of scripts) {
+                try {
+                    const data = JSON.parse(script.innerText);
+                    if (data.caption) return data.caption;
+                    // Sometimes it's nested in invalid JSON or different structure, 
+                    // but legal JSON-LD for Instagram usually has 'caption' or 'articleBody'
+                    if (data.articleBody) return data.articleBody;
+                } catch (e) { }
+            }
+            return null;
+        });
+
+        await browser.close();
+        return caption;
+
+    } catch (e) {
+        await browser.close();
+        throw e;
+    }
+}
+
 app.post('/api/extract', async (req, res) => {
     const { url } = req.body;
 
@@ -25,42 +70,11 @@ app.post('/api/extract', async (req, res) => {
     }
 
     try {
-        const browser = await chromium.launch({
-            headless: true
-        });
-
-        // Create a context with a realistic User-Agent
-        const context = await browser.newContext({
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        });
-
-        const page = await context.newPage();
-
-        // Go to URL
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-
-        // Attempt to extract from Open Graph tags (most reliable for public previews)
-        let caption = await page.evaluate(() => {
-            const ogDescription = document.querySelector('meta[property="og:description"]');
-            if (ogDescription) {
-                return ogDescription.content;
-            }
-            // Fallback to title
-            return document.title;
-        });
-
-        // Cleanup: OG Description often is "Username on Instagram: 'Caption...'"
-        if (caption) {
-            // Remove "Username on Instagram: " prefix if present
-            caption = caption.replace(/^.*? on Instagram: ["']?|["']$/g, '');
-            // Remove trailing " - Instagram" or similar if title fallback was used
-            caption = caption.replace(/ - Instagram.*/, '');
-        }
-
-        await browser.close();
+        console.log(`Extracting caption for: ${url}`);
+        const caption = await extractCaption(url);
 
         if (!caption) {
-            throw new Error('Could not extract caption content.');
+            throw new Error('Could not extract caption content (Not found in JSON-LD).');
         }
 
         res.json({ text: caption });
