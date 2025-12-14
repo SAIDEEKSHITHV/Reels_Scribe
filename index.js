@@ -1,7 +1,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import { chromium } from 'playwright-core';
+import { chromium } from 'playwright';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -20,13 +20,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // Helper function for extraction (User provided logic)
 export async function extractCaption(reelUrl) {
     const browser = await chromium.launch({
-        executablePath: "/usr/bin/chromium",
-        headless: true,
-        args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage"
-        ]
+        headless: true
     });
 
     const page = await browser.newPage();
