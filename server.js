@@ -1,7 +1,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import puppeteer from 'puppeteer';
+import { chromium } from 'playwright';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -25,24 +25,19 @@ app.post('/api/extract', async (req, res) => {
     }
 
     try {
-        const browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--single-process'
-            ]
+        const browser = await chromium.launch({
+            headless: true
         });
 
-        const page = await browser.newPage();
+        // Create a context with a realistic User-Agent
+        const context = await browser.newContext({
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        });
 
-        // Set a realistic User-Agent to avoid basic bot detection
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+        const page = await context.newPage();
 
         // Go to URL
-        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
         // Attempt to extract from Open Graph tags (most reliable for public previews)
         let caption = await page.evaluate(() => {
@@ -71,7 +66,7 @@ app.post('/api/extract', async (req, res) => {
         res.json({ text: caption });
 
     } catch (error) {
-        console.error('Puppeteer Extraction Error:', error);
+        console.error('Playwright Extraction Error:', error);
         res.status(500).json({ error: 'Failed to extract caption', details: error.message });
     }
 });
