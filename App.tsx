@@ -5,14 +5,14 @@ import { formatCaption, copyToClipboard, downloadAsTxt } from './utils/textUtils
 import { MainInput } from './components/MainInput';
 import { Button } from './components/Button';
 import { HistorySidebar } from './components/HistorySidebar';
-import { 
-  Instagram, 
-  Copy, 
-  Download, 
-  Settings2, 
-  CheckCircle2, 
-  Hash, 
-  AtSign, 
+import {
+  Instagram,
+  Copy,
+  Download,
+  Settings2,
+  CheckCircle2,
+  Hash,
+  AtSign,
   AlignVerticalSpaceAround,
   AlertCircle,
   Clock
@@ -24,11 +24,11 @@ const App: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [currentCaption, setCurrentCaption] = useState<ExtractedCaption | null>(null);
   const [copied, setCopied] = useState(false);
-  
+
   // History State
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  
+
   // Format Options State
   const [formatOptions, setFormatOptions] = useState<FormatOptions>({
     removeHashtags: false,
@@ -60,7 +60,7 @@ const App: React.FC = () => {
     setErrorMsg(null);
     setCopied(false);
     setCurrentCaption(null);
-    
+
     // Reset options to default for new extraction
     setFormatOptions({
       removeHashtags: false,
@@ -70,7 +70,7 @@ const App: React.FC = () => {
 
     try {
       const text = await extractCaptionFromUrl(url);
-      
+
       const newCaption: ExtractedCaption = {
         id: Date.now().toString(),
         url,
@@ -130,8 +130,8 @@ const App: React.FC = () => {
               ReelScribe
             </span>
           </div>
-          
-          <button 
+
+          <button
             onClick={() => setIsHistoryOpen(true)}
             className="flex items-center space-x-2 text-gray-500 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all"
           >
@@ -143,22 +143,22 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-grow container mx-auto px-4 py-8 sm:py-12 max-w-5xl relative z-10">
-        
+
         <div className="text-center mb-10 animate-fadeIn">
           <h1 className="text-3xl sm:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
             Extract <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-600">Reel Captions</span> in Seconds
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed">
-            Paste an Instagram Reel link below to instantly get the full caption, emojis, and hashtags. 
+            Paste an Instagram Reel link below to instantly get the full caption, emojis, and hashtags.
             <span className="hidden sm:inline"> No login required.</span>
           </p>
         </div>
 
         {/* Input Section */}
         <div className="mb-12">
-          <MainInput 
-            onExtract={handleExtract} 
-            isLoading={loadingState === 'loading'} 
+          <MainInput
+            onExtract={handleExtract}
+            isLoading={loadingState === 'loading'}
           />
           {errorMsg && (
             <div className="mt-6 max-w-2xl mx-auto animate-fadeIn">
@@ -181,7 +181,7 @@ const App: React.FC = () => {
         {/* Result Section */}
         {currentCaption && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeInUp">
-            
+
             {/* Left: Options Panel */}
             <div className="lg:col-span-1 space-y-6">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -189,11 +189,11 @@ const App: React.FC = () => {
                   <Settings2 className="w-5 h-5 text-purple-500" />
                   <h3>Refine Output</h3>
                 </div>
-                
+
                 <div className="space-y-3">
                   <label className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer select-none">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="w-5 h-5 text-pink-500 rounded border-gray-300 focus:ring-pink-500"
                       checked={formatOptions.removeHashtags}
                       onChange={(e) => setFormatOptions(prev => ({ ...prev, removeHashtags: e.target.checked }))}
@@ -205,8 +205,8 @@ const App: React.FC = () => {
                   </label>
 
                   <label className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer select-none">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="w-5 h-5 text-pink-500 rounded border-gray-300 focus:ring-pink-500"
                       checked={formatOptions.removeMentions}
                       onChange={(e) => setFormatOptions(prev => ({ ...prev, removeMentions: e.target.checked }))}
@@ -218,8 +218,8 @@ const App: React.FC = () => {
                   </label>
 
                   <label className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer select-none">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="w-5 h-5 text-pink-500 rounded border-gray-300 focus:ring-pink-500"
                       checked={formatOptions.removeBlankLines}
                       onChange={(e) => setFormatOptions(prev => ({ ...prev, removeBlankLines: e.target.checked }))}
@@ -233,26 +233,26 @@ const App: React.FC = () => {
               </div>
 
               <div className="hidden lg:block bg-purple-50 p-6 rounded-2xl border border-purple-100 shadow-sm">
-                 <h4 className="font-semibold text-purple-900 mb-2">Pro Tip</h4>
-                 <p className="text-sm text-purple-800 leading-relaxed">
-                   The original formatting is preserved by default. Use the toggles above to clean up the text instantly.
-                 </p>
+                <h4 className="font-semibold text-purple-900 mb-2">Pro Tip</h4>
+                <p className="text-sm text-purple-800 leading-relaxed">
+                  The original formatting is preserved by default. Use the toggles above to clean up the text instantly.
+                </p>
               </div>
             </div>
 
             {/* Right: Output Panel */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col h-full min-h-[400px] transition-all hover:shadow-xl">
-                
+
                 {/* Output Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Generated Caption</span>
                   <div className="flex space-x-2 h-6">
-                     {copied && (
-                       <span className="text-sm text-green-600 font-medium flex items-center animate-pulse">
-                         <CheckCircle2 className="w-4 h-4 mr-1" /> Copied!
-                       </span>
-                     )}
+                    {copied && (
+                      <span className="text-sm text-green-600 font-medium flex items-center animate-pulse">
+                        <CheckCircle2 className="w-4 h-4 mr-1" /> Copied!
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -268,15 +268,15 @@ const App: React.FC = () => {
 
                 {/* Actions Footer */}
                 <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-3 justify-end">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={handleDownload}
                     icon={<Download size={18} />}
                   >
                     Download .txt
                   </Button>
-                  <Button 
-                    variant="primary" 
+                  <Button
+                    variant="primary"
                     onClick={handleCopy}
                     icon={<Copy size={18} />}
                   >
@@ -288,18 +288,18 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
-      
+
       {/* Sidebar */}
-      <HistorySidebar 
-        isOpen={isHistoryOpen} 
-        onClose={() => setIsHistoryOpen(false)} 
-        history={history} 
-        onSelect={handleHistorySelect} 
+      <HistorySidebar
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        history={history}
+        onSelect={handleHistorySelect}
       />
 
       {/* Footer */}
       <footer className="py-6 text-center text-gray-400 text-sm border-t border-gray-100 mt-auto bg-white">
-        <p>© {new Date().getFullYear()} ReelScribe. Powered by Gemini.</p>
+        <p>© {new Date().getFullYear()} ReelScribe. Powered by Sai Deekshith.</p>
       </footer>
     </div>
   );
