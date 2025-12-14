@@ -39,10 +39,7 @@ app.post('/api/extract', async (req, res) => {
         const caption = await extractCaption(url);
 
         if (!caption) {
-            return res.status(404).json({
-                success: false,
-                message: "Caption not found or reel is private"
-            });
+            throw new Error("Caption not found. Instagram may be rate-limiting or rendering this reel differently.");
         }
 
         res.json({ success: true, caption });
