@@ -1,7 +1,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -19,49 +19,41 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // Helper function for extraction (User provided logic)
 export async function extractCaption(reelUrl) {
-    console.log("Launching browser...");
-
     const browser = await chromium.launch({
-        headless: true
+        executablePath: "/usr/bin/chromium",
+        headless: true,
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage"
+        ]
     });
 
-    try {
-        console.log("Opening page...");
-        const page = await browser.newPage({
-            userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        });
+    const page = await browser.newPage();
 
-        console.log("Navigating to reel...");
-        await page.goto(reelUrl, {
-            waitUntil: "networkidle",
-            timeout: 60000
-        });
+    await page.goto(reelUrl, {
+        waitUntil: "networkidle",
+        timeout: 60000
+    });
 
-        console.log("Page loaded, waiting...");
-        await page.waitForTimeout(3000);
+    await page.waitForTimeout(3000);
 
-        console.log("Extracting caption...");
-        const caption = await page.evaluate(() => {
-            const scripts = document.querySelectorAll("script[type='application/ld+json']");
+    const caption = await page.evaluate(() => {
+        const scripts = document.querySelectorAll(
+            "script[type='application/ld+json']"
+        );
 
-            for (const script of scripts) {
-                try {
-                    const data = JSON.parse(script.innerText);
-                    if (data.caption) return data.caption;
-                } catch (e) { }
-            }
-            return null;
-        });
+        for (const script of scripts) {
+            try {
+                const data = JSON.parse(script.innerText);
+                if (data.caption) return data.caption;
+            } catch { }
+        }
+        return null;
+    });
 
-        console.log("Caption found:", !!caption);
-
-        await browser.close();
-        return caption;
-
-    } catch (e) {
-        await browser.close();
-        throw e;
-    }
+    await browser.close();
+    return caption;
 }
 
 app.post('/api/extract', async (req, res) => {
