@@ -18,26 +18,29 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Helper function for extraction (User provided logic)
-async function extractCaption(reelUrl) {
+export async function extractCaption(reelUrl) {
+    console.log("Launching browser...");
+
     const browser = await chromium.launch({
         headless: true
     });
 
-    const context = await browser.newContext({
-        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    });
-
-    const page = await context.newPage();
-
     try {
+        console.log("Opening page...");
+        const page = await browser.newPage({
+            userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        });
+
+        console.log("Navigating to reel...");
         await page.goto(reelUrl, {
             waitUntil: "networkidle",
             timeout: 60000
         });
 
-        // wait for Instagram to fully load caption
+        console.log("Page loaded, waiting...");
         await page.waitForTimeout(3000);
 
+        console.log("Extracting caption...");
         const caption = await page.evaluate(() => {
             const scripts = document.querySelectorAll("script[type='application/ld+json']");
 
@@ -45,13 +48,12 @@ async function extractCaption(reelUrl) {
                 try {
                     const data = JSON.parse(script.innerText);
                     if (data.caption) return data.caption;
-                    // Sometimes it's nested in invalid JSON or different structure, 
-                    // but legal JSON-LD for Instagram usually has 'caption' or 'articleBody'
-                    if (data.articleBody) return data.articleBody;
                 } catch (e) { }
             }
             return null;
         });
+
+        console.log("Caption found:", !!caption);
 
         await browser.close();
         return caption;
@@ -84,10 +86,12 @@ app.post('/api/extract', async (req, res) => {
 
         res.json({ success: true, caption });
     } catch (err) {
-        console.error(err);
+        console.error("EXTRACTION ERROR:", err.message);
+        console.error(err.stack);
+
         res.status(500).json({
             success: false,
-            message: "Extraction failed"
+            message: err.message
         });
     }
 });
