@@ -1,18 +1,20 @@
 FROM mcr.microsoft.com/playwright:v1.44.0-jammy
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files first
-COPY package.json package-lock.json* ./
+# Copy package files
+COPY package*.json ./
 
-# Install dependencies
-RUN npm install --omit=dev
+# Install dependencies (including devDependencies for build)
+RUN npm install
 
-# Copy rest of the code
+# Copy application code
 COPY . .
 
-# Expose port (Render uses PORT env)
+# Build the frontend
+RUN npm run build
+
+# Expose port
 EXPOSE 3000
 
 # Start server

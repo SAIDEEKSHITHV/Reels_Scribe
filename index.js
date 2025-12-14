@@ -14,9 +14,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Serve a simple message for the root route
-app.get('/', (req, res) => {
-    res.send('ReelScribe Backend is Running! Use POST /api/extract to extract captions.');
+// Serve static files from the 'dist' directory (Vite build)
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Fallback for SPA routing: serve index.html for unknown routes
+app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'API route not found' });
+    }
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 app.post('/api/extract', async (req, res) => {
