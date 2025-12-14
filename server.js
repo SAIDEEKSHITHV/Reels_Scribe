@@ -65,23 +65,30 @@ async function extractCaption(reelUrl) {
 app.post('/api/extract', async (req, res) => {
     const { url } = req.body;
 
-    if (!url) {
-        return res.status(400).json({ error: 'URL is required' });
+    if (!url || !url.includes("instagram.com/reel")) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid Instagram reel URL"
+        });
     }
 
     try {
-        console.log(`Extracting caption for: ${url}`);
         const caption = await extractCaption(url);
 
         if (!caption) {
-            throw new Error('Could not extract caption content (Not found in JSON-LD).');
+            return res.status(404).json({
+                success: false,
+                message: "Caption not found or reel is private"
+            });
         }
 
-        res.json({ text: caption });
-
-    } catch (error) {
-        console.error('Playwright Extraction Error:', error);
-        res.status(500).json({ error: 'Failed to extract caption', details: error.message });
+        res.json({ success: true, caption });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Extraction failed"
+        });
     }
 });
 

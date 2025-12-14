@@ -19,11 +19,16 @@ export const extractCaptionFromUrl = async (url: string): Promise<string> => {
 
     if (!response.ok) {
       const errData = await response.json();
-      throw new Error(errData.details || errData.error || 'Extraction failed on server');
+      throw new Error(errData.message || 'Extraction failed on server');
     }
 
     const data = await response.json();
-    return data.text;
+
+    if (!data.success) {
+      throw new Error(data.message || "Failed to extract caption");
+    }
+
+    return data.caption;
 
   } catch (error: any) {
     console.error("Extraction Error:", error);
