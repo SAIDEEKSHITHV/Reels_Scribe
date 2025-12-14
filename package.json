@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "node server.js",
-    "start": "node server.js",
+    "server": "node index.js",
+    "start": "node index.js",
     "postinstall": "npx playwright install chromium",
     "build": "vite build",
     "preview": "vite preview"
