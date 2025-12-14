@@ -14,8 +14,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the 'dist' directory (Vite build)
-app.use(express.static(path.join(__dirname, 'dist')));
+// Serve a simple message for the root route
+app.get('/', (req, res) => {
+    res.send('ReelScribe Backend is Running! Use POST /api/extract to extract captions.');
+});
 
 app.post('/api/extract', async (req, res) => {
     const { url } = req.body;
@@ -49,10 +51,7 @@ app.post('/api/extract', async (req, res) => {
     }
 });
 
-// Fallback for SPA routing: serve index.html for unknown routes
-app.get(/(.*)/, (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
